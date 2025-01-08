@@ -4,8 +4,9 @@ import axios from "axios";
 import { useStore } from "../Store";
 
 export default function AddUserPage({ setQueryData }) {
-  const { setCurrentPage, setModalOpen } = useStore();
-  // Pass setModalOpen to close modal
+  const { setCurrentPage, setModalOpen, currentPage } = useStore();
+
+  // Function to add user data
   const addData = async (userData) => {
     try {
       const res = await axios.post("https://reqres.in/api/users/", userData);
@@ -25,21 +26,28 @@ export default function AddUserPage({ setQueryData }) {
     onSubmit: async (values) => {
       const newUser = await addData(values); // Add the new user
       if (newUser) {
-        // We should never directly mutate the state, so create a new array and use unshift on it.
         setQueryData((prevQueryData) => {
-          // Create a copy of the previous queryData and use unshift to add the new user at the front
+          // Create a copy of the previous queryData and add the new user at the front
           const updatedData = [...prevQueryData]; // Create a shallow copy of the array
-          updatedData.unshift(newUser); // Use unshift to add the new user at the beginning
+          updatedData.unshift(newUser); // Add new user at the beginning
 
-          // Check if the total number of users exceeds 3
+          // Check if the total number of users exceeds 3 and adjust pagination
           if (updatedData.length > 3) {
-            setCurrentPage(1); // Reset to the first page if there are more than 3 users
+            // Ensure the current page is set to 1 (for page 1 users)
+            if (currentPage === 1) {
+              return updatedData.slice(0, 3); // Only show first 3 users
+            }
 
-            // Only show the first 3 users on the current page
-            return updatedData.slice(0, 3); // This slices the first 3 users
+            // If currentPage is 2 or higher, ensure it adjusts to the new data
+            if (currentPage > 1) {
+              // Check if we need to adjust the page due to deletion
+              const totalPages = Math.ceil(updatedData.length / 3);
+              setCurrentPage(Math.min(currentPage, totalPages)); // Set page within the available range
+
+              return updatedData.slice((currentPage - 1) * 3, currentPage * 3); // Return users for the current page
+            }
           }
 
-          // Otherwise, return the updated data with the new user at the top
           return updatedData;
         });
 

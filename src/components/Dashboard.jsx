@@ -57,7 +57,21 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`https://reqres.in/api/users/${id}`); // Send delete request
-      setQueryData(queryData.filter((user) => user.id !== id)); // Remove deleted user from local state
+      // Replace the deleted user's data with blank data
+      setQueryData((prevData) =>
+        prevData.map((user) =>
+          user.id === id
+            ? {
+                ...user,
+                first_name: "",
+                last_name: "",
+                email: "",
+                delete: true,
+              }
+            : user
+        )
+      );
+
       console.log("User deleted with ID:", id);
     } catch (error) {
       console.error("Failed to delete user:", error);
@@ -113,7 +127,7 @@ export default function Dashboard() {
       </div>
 
       {/* Table displaying user data */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-60">
         <table className="min-w-full border-collapse border border-gray-300 ">
           <thead>
             <tr className="bg-gray-200">
@@ -135,7 +149,7 @@ export default function Dashboard() {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="h-full">
             {Array.isArray(queryData) &&
               queryData.map((user, index) => (
                 <tr key={user.id} className="even:bg-gray-50 hover:bg-gray-100">
@@ -155,18 +169,22 @@ export default function Dashboard() {
                   <td className="border border-gray-300 px-4 py-2 text-gray-700">
                     <div className="content-center">
                       {/* Edit and Delete buttons */}
-                      <button
-                        className="border align-middle px-2 py-2 border-black rounded-lg bg-green-600 text-slate-50"
-                        onClick={() => openEditModal(user)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="align-middle border px-4 py-2 border-black rounded-lg bg-red-500 text-slate-50"
-                        onClick={() => handleDelete(user.id)} // Delete user on click
-                      >
-                        Delete
-                      </button>
+                      {!user.delete && (
+                        <>
+                          <button
+                            className="border align-middle px-2 py-1 border-black rounded-lg bg-green-600 text-slate-50"
+                            onClick={() => openEditModal(user)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="align-middle border px-4 py-1 border-black rounded-lg bg-red-500 text-slate-50"
+                            onClick={() => handleDelete(user.id)} // Delete user on click
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
