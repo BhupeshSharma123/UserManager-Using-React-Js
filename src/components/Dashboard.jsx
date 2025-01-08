@@ -15,10 +15,13 @@ export default function Dashboard() {
     setCurrentPage,
     setTotalPages,
     setModalOpen,
+    filterValue,
+    setFilterValue,
   } = useStore();
 
   const [queryData, setQueryData] = useState([]); // Stores the users data
   const [selectedUser, setSelectedUser] = useState(null); // Tracks the selected user for editing
+  const [filteredData, setFilteredData] = useState([]); // Stores the filtered data
 
   // Fetch paginated user data
   const fetchPaginatedData = async ({ queryKey }) => {
@@ -42,7 +45,10 @@ export default function Dashboard() {
     fetchPaginatedData, // Fetch function
     {
       enabled: currentPage >= 1, // Only run query when currentPage is >= 1
-      onSuccess: (data) => setQueryData(data), // Set query data after successful fetch
+      onSuccess: (data) => {
+        setQueryData(data); // Set query data after successful fetch
+        setFilteredData(data); // Initialize filtered data with the fetched data
+      },
       keepPreviousData: true, // Keep previous data while new data is loading
     }
   );
@@ -56,26 +62,34 @@ export default function Dashboard() {
   // Handle user deletion
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://reqres.in/api/users/${id}`); // Send delete request
-      // Replace the deleted user's data with blank data
-      setQueryData((prevData) =>
-        prevData.map((user) =>
-          user.id === id
-            ? {
-                ...user,
-                first_name: "",
-                last_name: "",
-                email: "",
-                delete: true,
-              }
-            : user
-        )
-      );
+      // Simulate a delete request to the API
+      await axios.delete(`https://reqres.in/api/users/${id}`);
+
+      // Remove the deleted user from the queryData state
+      setQueryData((prevData) => prevData.filter((user) => user.id !== id));
+
+      // Also update the filteredData to reflect the deletion
+      setFilteredData((prevData) => prevData.filter((user) => user.id !== id));
 
       console.log("User deleted with ID:", id);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
+  };
+
+  // Handle filter input change
+  const handleFilterChange = (e) => {
+    const value = e.target.value;
+    setFilterValue(value); // Update the filter value in the store
+
+    // Filter the queryData based on the input value
+    const filtered = queryData.filter(
+      (user) =>
+        user.first_name.toLowerCase().includes(value.toLowerCase()) ||
+        user.last_name.toLowerCase().includes(value.toLowerCase()) ||
+        user.email.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredData(filtered); // Update the filtered data
   };
 
   // Open the modal for editing a selected user
@@ -91,15 +105,6 @@ export default function Dashboard() {
       setModalOpen(false); // Close the modal
     }
   };
-
-  // Manage body scroll behavior when modal is open
-  useEffect(() => {
-    document.body.style.overflow = isModalOpen ? "hidden" : "auto"; // Prevent background scroll when modal is open
-
-    return () => {
-      document.body.style.overflow = "auto"; // Reset scroll behavior on cleanup
-    };
-  }, [isModalOpen]);
 
   // Display loading message while data is being fetched
   if (isLoading) {
@@ -118,6 +123,13 @@ export default function Dashboard() {
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
+        <input
+          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-700 focus:border-transparent transition-all duration-200"
+          onChange={handleFilterChange} // Handle filter input change
+          value={filterValue}
+          type="text"
+          placeholder="Search by name or email"
+        />
         <button
           onClick={() => setModalOpen(true)} // Open modal on click
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -150,8 +162,8 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody className="h-full">
-            {Array.isArray(queryData) &&
-              queryData.map((user, index) => (
+            {Array.isArray(filteredData) &&
+              filteredData.map((user, index) => (
                 <tr key={user.id} className="even:bg-gray-50 hover:bg-gray-100">
                   <td className="border border-gray-300 px-4 py-2 text-gray-700">
                     {currentPage * 3 - 3 + index + 1}{" "}
