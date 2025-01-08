@@ -53,11 +53,6 @@ export default function Dashboard() {
     }
   );
 
-  // Update filteredData when queryData changes
-  useEffect(() => {
-    setFilteredData(queryData);
-  }, [queryData]);
-
   // Handle page change (Pagination)
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages) return; // Don't allow invalid pages
@@ -67,39 +62,16 @@ export default function Dashboard() {
   // Handle user deletion
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://reqres.in/api/users/${id}`); // Send delete request
+      // Simulate a delete request to the API
+      await axios.delete(`https://reqres.in/api/users/${id}`);
 
-      // Replace the deleted user's data with empty values
-      setQueryData((prevData) =>
-        prevData.map((user) =>
-          user.id === id
-            ? {
-                ...user,
-                first_name: "",
-                last_name: "",
-                email: "",
-                delete: true, // Mark the row as deleted
-              }
-            : user
-        )
-      );
+      // Remove the deleted user from the queryData state
+      setQueryData((prevData) => prevData.filter((user) => user.id !== id));
 
-      // Also update filteredData to reflect the changes
-      setFilteredData((prevData) =>
-        prevData.map((user) =>
-          user.id === id
-            ? {
-                ...user,
-                first_name: "",
-                last_name: "",
-                email: "",
-                delete: true, // Mark the row as deleted
-              }
-            : user
-        )
-      );
+      // Also update the filteredData to reflect the deletion
+      setFilteredData((prevData) => prevData.filter((user) => user.id !== id));
 
-      console.log("User data cleared for ID:", id);
+      console.log("User deleted with ID:", id);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
