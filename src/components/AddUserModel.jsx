@@ -1,0 +1,107 @@
+/* eslint-disable react/prop-types */
+import { useFormik } from "formik";
+import axios from "axios";
+import { useStore } from "../Store";
+
+export default function AddUserPage({ setQueryData }) {
+  const { setCurrentPage, setModalOpen } = useStore();
+  // Pass setModalOpen to close modal
+  const addData = async (userData) => {
+    try {
+      const res = await axios.post("https://reqres.in/api/users/", userData);
+      return res.data;
+    } catch (error) {
+      console.error("Error adding user data", error);
+    }
+  };
+
+  const { handleSubmit, handleChange, values } = useFormik({
+    initialValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+    },
+
+    onSubmit: async (values) => {
+      const newUser = await addData(values); // Add the new user
+      if (newUser) {
+        // We should never directly mutate the state, so create a new array and use unshift on it.
+        setQueryData((prevQueryData) => {
+          // Create a copy of the previous queryData and use unshift to add the new user at the front
+          const updatedData = [...prevQueryData]; // Create a shallow copy of the array
+          updatedData.unshift(newUser); // Use unshift to add the new user at the beginning
+
+          // Check if the total number of users exceeds 3
+          if (updatedData.length > 3) {
+            setCurrentPage(1); // Reset to the first page if there are more than 3 users
+
+            // Only show the first 3 users on the current page
+            return updatedData.slice(0, 3); // This slices the first 3 users
+          }
+
+          // Otherwise, return the updated data with the new user at the top
+          return updatedData;
+        });
+
+        // Close the modal after successful form submission
+        setModalOpen(false);
+      }
+    },
+  });
+
+  return (
+    <div>
+      Add User
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 bg-white p-6 rounded-lg shadow-lg backdrop-blur-md"
+      >
+        <div>
+          <label htmlFor="first_name" className="block font-medium">
+            First Name
+          </label>
+          <input
+            id="first_name"
+            name="first_name"
+            type="text"
+            onChange={handleChange}
+            value={values.first_name}
+            className="w-full px-3 py-2 border rounded"
+          />
+        </div>
+        <div>
+          <label htmlFor="last_name" className="block font-medium">
+            Last Name
+          </label>
+          <input
+            id="last_name"
+            name="last_name"
+            type="text"
+            onChange={handleChange}
+            value={values.last_name}
+            className="w-full px-3 py-2 border rounded"
+          />
+        </div>
+        <div>
+          <label htmlFor="email" className="block font-medium">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            onChange={handleChange}
+            value={values.email}
+            className="w-full px-3 py-2 border rounded"
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        >
+          Submit
+        </button>
+      </form>
+    </div>
+  );
+}
