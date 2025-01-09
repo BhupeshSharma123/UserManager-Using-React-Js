@@ -64,6 +64,8 @@ export default function Dashboard() {
           user.id === id
             ? {
                 ...user,
+                index: "",
+
                 first_name: "",
                 last_name: "",
                 email: "",
@@ -122,7 +124,6 @@ export default function Dashboard() {
       <h1 className="text-center text-xl font-bold">Error: {error.message}</h1>
     );
   }
-  console.log(filterQuery);
 
   return (
     <div className="p-6">
@@ -194,13 +195,13 @@ export default function Dashboard() {
                       {!user.delete && (
                         <>
                           <button
-                            className="border align-middle px-2 py-1 border-black rounded-lg bg-green-600 text-slate-50"
+                            className=" hover:bg-green-700 border  align-middle mx-2 px-2 py-1 border-black rounded-lg bg-green-600 text-slate-50"
                             onClick={() => openEditModal(user)}
                           >
                             Edit
                           </button>
                           <button
-                            className="align-middle border px-4 py-1 border-black rounded-lg bg-red-500 text-slate-50"
+                            className="  align-middle hover:bg-red-600 border mx-2 px-4 py-1 border-black rounded-lg bg-red-500 text-slate-50"
                             onClick={() => handleDelete(user.id)} // Delete user on click
                           >
                             Delete
