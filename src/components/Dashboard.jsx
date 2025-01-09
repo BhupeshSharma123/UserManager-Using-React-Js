@@ -5,9 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import AddUserPage from "./AddUserModel";
 import EditPage from "./EditPage"; // Assuming you have an EditPage component
 import { useStore } from "../Store";
-
+import { toast } from "react-toastify";
 export default function Dashboard() {
   // Destructuring state from the global store
+  const notify = (text) => toast(text);
   const {
     currentPage,
     isModalOpen,
@@ -79,6 +80,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
+    notify("User Deleted");
   };
 
   // Open the modal for editing a selected user
@@ -252,13 +254,18 @@ export default function Dashboard() {
             {/* Conditionally render Edit or Add User Modal */}
             {selectedUser ? (
               <EditPage
+                notify={notify}
                 isModalOpen={isModalOpen}
                 setModalOpen={setModalOpen}
                 userData={selectedUser}
                 setQueryData={setQueryData}
               />
             ) : (
-              <AddUserPage queryData={queryData} setQueryData={setQueryData} />
+              <AddUserPage
+                queryData={queryData}
+                notify={notify}
+                setQueryData={setQueryData}
+              />
             )}
           </div>
         </div>

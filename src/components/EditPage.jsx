@@ -2,7 +2,12 @@
 import axios from "axios";
 import { useFormik } from "formik";
 
-export default function EditPage({ userData, setModalOpen, setQueryData }) {
+export default function EditPage({
+  userData,
+  setModalOpen,
+  setQueryData,
+  notify,
+}) {
   const updateData = async (id, values) => {
     try {
       const res = await axios.put(`https://reqres.in/api/users/${id}`, values);
@@ -29,6 +34,7 @@ export default function EditPage({ userData, setModalOpen, setQueryData }) {
         )
       );
       setModalOpen(false);
+      notify("User Edited");
     },
   });
 

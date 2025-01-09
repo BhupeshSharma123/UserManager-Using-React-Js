@@ -2,13 +2,10 @@
 import { useFormik } from "formik";
 import axios from "axios";
 import { useStore } from "../Store";
+import { toast } from "react-toastify";
 
-export default function AddUserPage({ setQueryData }) {
+export default function AddUserPage({ setQueryData, notify }) {
   const { setCurrentPage, setModalOpen, currentPage } = useStore();
-
-  // const { nextElement, setNextElement } = useState();
-
-  // Function to add user data
 
   const addData = async (userData) => {
     try {
@@ -16,6 +13,16 @@ export default function AddUserPage({ setQueryData }) {
       return res.data;
     } catch (error) {
       console.error("Error adding user data", error);
+      toast.error("Failed to add user. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        className: "bg-red-500 text-white", // Tailwind CSS classes for styling
+      });
     }
   };
 
@@ -30,49 +37,34 @@ export default function AddUserPage({ setQueryData }) {
       const newUser = await addData(values); // Add the new user
       if (newUser) {
         setQueryData((prevQueryData) => {
-          // Create a copy of the previous queryData and add the new user at the front
-          const updatedData = [...prevQueryData]; // Create a shallow copy of the array
-
-          // Add the new user to the front
+          const updatedData = [...prevQueryData];
           updatedData.unshift(newUser);
 
-          // Check if the total number of users exceeds 3 and adjust pagination
           if (updatedData.length > 3) {
-            // Ensure the current page is set to 1 (for page 1 users)
             if (currentPage === 1) {
-              return updatedData.slice(0, 3); // Only show first 3 users on page 1
+              return updatedData.slice(0, 3);
             }
 
-            // If currentPage is 2 or higher, ensure it adjusts to the new data
             if (currentPage > 1) {
-              // Check if we need to adjust the page due to pagination
               const totalPages = Math.ceil(updatedData.length / 3);
-
-              setCurrentPage(Math.min(currentPage, totalPages)); // Set page within the available range
-              console.log(updatedData);
-
+              setCurrentPage(Math.min(currentPage, totalPages));
               return updatedData.slice((currentPage - 1) * 3, currentPage * 3);
-
-              // Return users for the current page
             }
           }
-
-          // Return the full array if no pagination limit is needed
-          let element = updatedData.at(4);
-          console.log("element at 5 ", element);
 
           return updatedData;
         });
 
-        // Close the modal after successful form submission
-        setModalOpen(false);
+        // Trigger the toast notification
+        setModalOpen(false); // Close the modal after successful form submission
       }
+      notify("User added");
     },
   });
 
   return (
     <div>
-      Add User
+      <h1 className="text-2xl font-bold mb-4">Add User</h1>
       <form
         onSubmit={handleSubmit}
         className="space-y-4 bg-white p-6 rounded-lg shadow-lg backdrop-blur-md"
