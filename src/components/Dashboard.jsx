@@ -2,10 +2,12 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import AddUserPage from "./AddUserModel";
-import EditPage from "./EditPage"; // Assuming you have an EditPage component
+
+import EditPage from "../Models/EditPage"; // Assuming you have an EditPage component
 import { useStore } from "../Store";
 import { toast } from "react-toastify";
+import AddUserPage from "../Models/AddUserModel";
+
 export default function Dashboard() {
   // Destructuring state from the global store
   const notify = (text) => toast(text);
@@ -80,7 +82,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
-    notify("User Deleted");
+    notify(`User Deleted `);
   };
 
   // Open the modal for editing a selected user
@@ -261,11 +263,7 @@ export default function Dashboard() {
                 setQueryData={setQueryData}
               />
             ) : (
-              <AddUserPage
-                queryData={queryData}
-                notify={notify}
-                setQueryData={setQueryData}
-              />
+              <AddUserPage queryData={queryData} setQueryData={setQueryData} />
             )}
           </div>
         </div>
