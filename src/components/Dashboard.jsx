@@ -61,28 +61,15 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`https://reqres.in/api/users/${id}`); // Send delete request
-      // Replace the deleted user's data with blank data
-      setQueryData((prevData) =>
-        prevData.map((user) =>
-          user.id === id
-            ? {
-                ...user,
-                index: "",
 
-                first_name: "",
-                last_name: "",
-                email: "",
-                delete: true,
-              }
-            : user
-        )
-      );
+      // Remove the deleted user from the queryData array
+      setQueryData((prevData) => prevData.filter((user) => user.id !== id));
 
       console.log("User deleted with ID:", id);
+      notify(`User Deleted`); // Notify the user
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
-    notify(`User Deleted `);
   };
 
   // Open the modal for editing a selected user
