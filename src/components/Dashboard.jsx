@@ -4,7 +4,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 
 import EditPage from "../Models/EditPage"; // Assuming you have an EditPage component
-import { useStore } from "../Store";
+import { useStore } from "../Store/Store";
 import { toast } from "react-toastify";
 import AddUserPage from "../Models/AddUserModel";
 

@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useFormik } from "formik";
 import axios from "axios";
-import { useStore } from "../Store";
+import { useStore } from "../Store/Store";
 import { toast } from "react-toastify";
 
 import EditUserForm from "../Cards/UserForm";
