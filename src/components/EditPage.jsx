@@ -1,7 +1,8 @@
+/* eslint-disable react/prop-types */
 import axios from "axios";
 import { useFormik } from "formik";
 
-export default function EditPage() {
+export default function EditPage({ userData, setModalOpen, setQueryData }) {
   const updateData = async (id, values) => {
     try {
       const res = await axios.put(`https://reqres.in/api/users/${id}`, values);
@@ -13,13 +14,21 @@ export default function EditPage() {
 
   const { handleSubmit, handleChange, values } = useFormik({
     initialValues: {
-      first_name: "",
-      last_name: "",
-      email: "",
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      email: userData.email,
     },
     onSubmit: (values) => {
       console.log("Form data submitted:", values);
-      updateData(2, values); // Assuming id is 2 for demonstration
+      updateData(userData.id, values);
+      // Pass the id and updated values
+      console.log(userData.id);
+      setQueryData((prevData) =>
+        prevData.map((user) =>
+          user.id === userData.id ? { ...user, ...values } : user
+        )
+      );
+      setModalOpen(false);
     },
   });
 

@@ -15,13 +15,11 @@ export default function Dashboard() {
     setCurrentPage,
     setTotalPages,
     setModalOpen,
-    filterValue,
-    setFilterValue,
   } = useStore();
 
   const [queryData, setQueryData] = useState([]); // Stores the users data
   const [selectedUser, setSelectedUser] = useState(null); // Tracks the selected user for editing
-  const [filteredData, setFilteredData] = useState([]); // Stores the filtered data
+  const [filterQuery, setFilterQuery] = useState(""); // Filter query for searching users
 
   // Fetch paginated user data
   const fetchPaginatedData = async ({ queryKey }) => {
@@ -45,18 +43,10 @@ export default function Dashboard() {
     fetchPaginatedData, // Fetch function
     {
       enabled: currentPage >= 1, // Only run query when currentPage is >= 1
-      onSuccess: (data) => {
-        setQueryData(data); // Set query data after successful fetch
-        setFilteredData(data); // Initialize filtered data with the fetched data
-      },
+      onSuccess: (data) => setQueryData(data), // Set query data after successful fetch
       keepPreviousData: true, // Keep previous data while new data is loading
     }
   );
-
-  // Update filteredData when queryData changes
-  useEffect(() => {
-    setFilteredData(queryData);
-  }, [queryData]);
 
   // Handle page change (Pagination)
   const handlePageChange = (page) => {
@@ -68,8 +58,7 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`https://reqres.in/api/users/${id}`); // Send delete request
-
-      // Replace the deleted user's data with empty values
+      // Replace the deleted user's data with blank data
       setQueryData((prevData) =>
         prevData.map((user) =>
           user.id === id
@@ -78,46 +67,16 @@ export default function Dashboard() {
                 first_name: "",
                 last_name: "",
                 email: "",
-                delete: true, // Mark the row as deleted
+                delete: true,
               }
             : user
         )
       );
 
-      // Also update filteredData to reflect the changes
-      setFilteredData((prevData) =>
-        prevData.map((user) =>
-          user.id === id
-            ? {
-                ...user,
-                first_name: "",
-                last_name: "",
-                email: "",
-                delete: true, // Mark the row as deleted
-              }
-            : user
-        )
-      );
-
-      console.log("User data cleared for ID:", id);
+      console.log("User deleted with ID:", id);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
-  };
-
-  // Handle filter input change
-  const handleFilterChange = (e) => {
-    const value = e.target.value;
-    setFilterValue(value); // Update the filter value in the store
-
-    // Filter the queryData based on the input value
-    const filtered = queryData.filter(
-      (user) =>
-        user.first_name.toLowerCase().includes(value.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(value.toLowerCase()) ||
-        user.email.toLowerCase().includes(value.toLowerCase())
-    );
-    setFilteredData(filtered); // Update the filtered data
   };
 
   // Open the modal for editing a selected user
@@ -133,6 +92,24 @@ export default function Dashboard() {
       setModalOpen(false); // Close the modal
     }
   };
+
+  // Manage body scroll behavior when modal is open
+  useEffect(() => {
+    document.body.style.overflow = isModalOpen ? "hidden" : "auto"; // Prevent background scroll when modal is open
+
+    return () => {
+      document.body.style.overflow = "auto"; // Reset scroll behavior on cleanup
+    };
+  }, [isModalOpen]);
+
+  // Filter users based on the filter query
+  const filteredData = queryData.filter((user) => {
+    return (
+      user.first_name.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      user.last_name.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(filterQuery.toLowerCase())
+    );
+  });
 
   // Display loading message while data is being fetched
   if (isLoading) {
@@ -151,20 +128,23 @@ export default function Dashboard() {
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <input
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 w-full max-w-xs transition-all duration-200 ease-in-out"
-          onChange={handleFilterChange} // Handle filter input change
-          value={filterValue}
-          type="text"
-          placeholder="Search by name or email"
-        />
-
         <button
           onClick={() => setModalOpen(true)} // Open modal on click
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           +
         </button>
+      </div>
+
+      {/* Filter Input */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={filterQuery}
+          onChange={(e) => setFilterQuery(e.target.value)} // Update filter query on input change
+          className="px-4 py-2 border border-gray-300 rounded w-full"
+        />
       </div>
 
       {/* Table displaying user data */}
@@ -272,7 +252,6 @@ export default function Dashboard() {
               <EditPage
                 isModalOpen={isModalOpen}
                 setModalOpen={setModalOpen}
-                userId={selectedUser.id}
                 userData={selectedUser}
                 setQueryData={setQueryData}
               />

@@ -6,6 +6,8 @@ import { useStore } from "../Store";
 export default function AddUserPage({ setQueryData }) {
   const { setCurrentPage, setModalOpen, currentPage } = useStore();
 
+  // const { nextElement, setNextElement } = useState();
+
   // Function to add user data
   const addData = async (userData) => {
     try {
@@ -29,24 +31,32 @@ export default function AddUserPage({ setQueryData }) {
         setQueryData((prevQueryData) => {
           // Create a copy of the previous queryData and add the new user at the front
           const updatedData = [...prevQueryData]; // Create a shallow copy of the array
-          updatedData.unshift(newUser); // Add new user at the beginning
+
+          // Add the new user to the front
+          updatedData.unshift(newUser);
 
           // Check if the total number of users exceeds 3 and adjust pagination
           if (updatedData.length > 3) {
             // Ensure the current page is set to 1 (for page 1 users)
             if (currentPage === 1) {
-              return updatedData.slice(0, 3); // Only show first 3 users
+              return updatedData.slice(0, 3); // Only show first 3 users on page 1
             }
 
             // If currentPage is 2 or higher, ensure it adjusts to the new data
             if (currentPage > 1) {
-              // Check if we need to adjust the page due to deletion
+              // Check if we need to adjust the page due to pagination
               const totalPages = Math.ceil(updatedData.length / 3);
-              setCurrentPage(Math.min(currentPage, totalPages)); // Set page within the available range
 
-              return updatedData.slice((currentPage - 1) * 3, currentPage * 3); // Return users for the current page
+              setCurrentPage(Math.min(currentPage, totalPages)); // Set page within the available range
+              console.log(updatedData);
+
+              return updatedData.slice((currentPage - 1) * 3, currentPage * 3);
+
+              // Return users for the current page
             }
           }
+
+          // Return the full array if no pagination limit is needed
 
           return updatedData;
         });
