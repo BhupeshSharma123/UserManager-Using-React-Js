@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-
 import EditPage from "../Models/EditPage"; // Assuming you have an EditPage component
 import { useStore } from "../Store/Store";
 import { toast } from "react-toastify";
@@ -23,6 +22,7 @@ export default function Dashboard() {
   const [queryData, setQueryData] = useState([]); // Stores the users data
   const [selectedUser, setSelectedUser] = useState(null); // Tracks the selected user for editing
   const [filterQuery, setFilterQuery] = useState(""); // Filter query for searching users
+  const [sortOrder, setSortOrder] = useState("asc"); // Track sorting order (asc or desc)
 
   // Fetch paginated user data
   const fetchPaginatedData = async ({ queryKey }) => {
@@ -50,6 +50,11 @@ export default function Dashboard() {
       keepPreviousData: true, // Keep previous data while new data is loading
     }
   );
+
+  // Handle sorting
+  const handleSort = () => {
+    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc")); // Toggle sorting order
+  };
 
   // Handle page change (Pagination)
   const handlePageChange = (page) => {
@@ -104,6 +109,13 @@ export default function Dashboard() {
     );
   });
 
+  // Sort the filteredData array
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (a.first_name < b.first_name) return sortOrder === "asc" ? -1 : 1;
+    if (a.first_name > b.first_name) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
+
   if (isLoading) {
     // Display loading message while data is being fetched
     return <h1 className="text-center text-xl font-bold">Loading...</h1>;
@@ -121,6 +133,12 @@ export default function Dashboard() {
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
+        <button
+          onClick={handleSort} // Toggle sorting order
+          className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600"
+        >
+          Sort by First Name ({sortOrder === "asc" ? "↑" : "↓"})
+        </button>
         <button
           onClick={() => setModalOpen(true)} // Open modal on click
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -164,8 +182,8 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody className="h-full">
-            {Array.isArray(filteredData) &&
-              filteredData.map((user, index) => (
+            {Array.isArray(sortedData) &&
+              sortedData.map((user, index) => (
                 <tr key={user.id} className="even:bg-gray-50 hover:bg-gray-100">
                   <td className="border border-gray-300 px-4 py-2 text-gray-700">
                     {currentPage * 3 - 3 + index + 1}{" "}
