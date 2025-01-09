@@ -111,8 +111,8 @@ export default function Dashboard() {
     );
   });
 
-  // Display loading message while data is being fetched
   if (isLoading) {
+    // Display loading message while data is being fetched
     return <h1 className="text-center text-xl font-bold">Loading...</h1>;
   }
 
@@ -122,6 +122,7 @@ export default function Dashboard() {
       <h1 className="text-center text-xl font-bold">Error: {error.message}</h1>
     );
   }
+  console.log(filterQuery);
 
   return (
     <div className="p-6">
