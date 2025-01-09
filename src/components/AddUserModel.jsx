@@ -34,6 +34,7 @@ export default function AddUserPage({ setQueryData }) {
           const updatedData = [...prevQueryData]; // Create a shallow copy of the array
 
           // Add the new user to the front
+          updatedData.unshift(newUser);
 
           // Check if the total number of users exceeds 3 and adjust pagination
           if (updatedData.length > 3) {
