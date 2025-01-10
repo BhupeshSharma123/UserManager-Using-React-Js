@@ -39,8 +39,8 @@ export default function AddUserPage({ setQueryData, notify }) {
       const newUser = await addData(values); // Add the new user
       if (newUser) {
         setQueryData((prevQueryData) => {
-          const updatedData = [newUser, ...prevQueryData];
-          // updatedData.unshift(newUser);
+          const updatedData = [...prevQueryData];
+          updatedData.unshift(newUser);
 
           if (updatedData.length > 3) {
             if (currentPage === 1) {

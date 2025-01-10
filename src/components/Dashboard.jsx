@@ -21,22 +21,31 @@ export default function Dashboard() {
 
   const [queryData, setQueryData] = useState([]); // Stores the users data
   const [selectedUser, setSelectedUser] = useState(null); // Tracks the selected user for editing
-  const [filterQuery, setFilterQuery] = useState(""); // Filter query for searching users
   const [sortOrder, setSortOrder] = useState("asc"); // Track sorting order (asc or desc)
   const [isDarkMode, setIsDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true" // Initialize with user's preference
+    localStorage.getItem("darkMode") === "true"
   );
+
+  // State for column filters
+  const [columnFilters, setColumnFilters] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+  });
+
+  // State to track which column's filter input is visible
+  const [activeFilterColumns, setActiveFilterColumns] = useState({});
 
   // Toggle dark mode
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => {
       const newMode = !prevMode;
-      localStorage.setItem("darkMode", newMode); // Save preference to localStorage
+      localStorage.setItem("darkMode", newMode);
       return newMode;
     });
   };
 
-  // Effect to add/remove the 'dark' class on the root element
+  // Add/remove the 'dark' class on the root element
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -47,52 +56,48 @@ export default function Dashboard() {
 
   // Fetch paginated user data
   const fetchPaginatedData = async ({ queryKey }) => {
-    const [_, page] = queryKey; // Extract the current page from queryKey
+    const [_, page] = queryKey;
 
     try {
       const response = await axios.get(
         `https://reqres.in/api/users?page=${page}&per_page=3`
       );
-      setTotalPages(response.data.total_pages); // Update the total pages from the response
-      return response.data.data; // Return the list of users
+      setTotalPages(response.data.total_pages);
+      return response.data.data;
     } catch (error) {
       console.error("Error fetching data", error);
-      return []; // Return empty array on error
+      return [];
     }
   };
 
   // Fetch data using React Query's useQuery hook
   const { isLoading, isError, error } = useQuery(
-    ["users", currentPage], // Key for this query
-    fetchPaginatedData, // Fetch function
+    ["users", currentPage],
+    fetchPaginatedData,
     {
-      enabled: currentPage >= 1, // Only run query when currentPage is >= 1
-      onSuccess: (data) => setQueryData(data), // Set query data after successful fetch
-      keepPreviousData: true, // Keep previous data while new data is loading
+      enabled: currentPage >= 1,
+      onSuccess: (data) => setQueryData(data),
+      keepPreviousData: true,
     }
   );
 
   // Handle sorting
   const handleSort = () => {
-    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc")); // Toggle sorting order
+    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
   };
 
   // Handle page change (Pagination)
   const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages) return; // Don't allow invalid pages
-    setCurrentPage(page); // Update the current page in the store
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
   };
 
   // Handle user deletion
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://reqres.in/api/users/${id}`); // Send delete request
-
-      // Remove the deleted user from the queryData array
+      await axios.delete(`https://reqres.in/api/users/${id}`);
       setQueryData((prevData) => prevData.filter((user) => user.id !== id));
-
-      console.log("User deleted with ID:", id);
-      notify(`User Deleted`); // Notify the user
+      notify(`User Deleted`);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
@@ -100,33 +105,51 @@ export default function Dashboard() {
 
   // Open the modal for editing a selected user
   const openEditModal = (userId) => {
-    setSelectedUser(userId); // Set the selected user to edit
-    setModalOpen(true); // Open the modal
-    console.log(selectedUser, "selected user"); // Debugging
+    setSelectedUser(userId);
+    setModalOpen(true);
   };
 
   // Close the modal when clicking outside of it
   const closeModal = (event) => {
     if (event.target.id === "modal-backdrop") {
-      setModalOpen(false); // Close the modal
+      setModalOpen(false);
     }
   };
 
   // Manage body scroll behavior when modal is open
   useEffect(() => {
-    document.body.style.overflow = isModalOpen ? "hidden" : "auto"; // Prevent background scroll when modal is open
-
+    document.body.style.overflow = isModalOpen ? "hidden" : "auto";
     return () => {
-      document.body.style.overflow = "auto"; // Reset scroll behavior on cleanup
+      document.body.style.overflow = "auto";
     };
   }, [isModalOpen]);
 
-  // Filter users based on the filter query
+  // Handle column filter input change
+  const handleFilterChange = (column, value) => {
+    setColumnFilters((prevFilters) => ({
+      ...prevFilters,
+      [column]: value,
+    }));
+  };
+
+  // Toggle the filter input for a specific column
+  const toggleFilterColumn = (column) => {
+    setActiveFilterColumns((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }));
+  };
+
+  // Filter data based on column filters
   const filteredData = queryData.filter((user) => {
     return (
-      user.first_name.toLowerCase().includes(filterQuery.toLowerCase()) ||
-      user.last_name.toLowerCase().includes(filterQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(filterQuery.toLowerCase())
+      user.first_name
+        .toLowerCase()
+        .includes(columnFilters.first_name.toLowerCase()) &&
+      user.last_name
+        .toLowerCase()
+        .includes(columnFilters.last_name.toLowerCase()) &&
+      user.email.toLowerCase().includes(columnFilters.email.toLowerCase())
     );
   });
 
@@ -138,11 +161,9 @@ export default function Dashboard() {
   });
 
   if (isLoading) {
-    // Display loading message while data is being fetched
     return <h1 className="text-center text-xl font-bold">Loading...</h1>;
   }
 
-  // Display error message if an error occurred while fetching data
   if (isError) {
     return (
       <h1 className="text-center text-xl font-bold">Error: {error.message}</h1>
@@ -156,19 +177,19 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
         <div className="flex gap-4">
           <button
-            onClick={handleSort} // Toggle sorting order
+            onClick={handleSort}
             className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600"
           >
             Sort by First Name ({sortOrder === "asc" ? "↑" : "↓"})
           </button>
           <button
-            onClick={toggleDarkMode} // Toggle dark mode
+            onClick={toggleDarkMode}
             className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
           >
             {isDarkMode ? "Light Mode" : "Dark Mode"}
           </button>
           <button
-            onClick={() => setModalOpen(true)} // Open modal on click
+            onClick={() => setModalOpen(true)}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             +
@@ -176,81 +197,252 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Filter Input */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={filterQuery}
-          onChange={(e) => setFilterQuery(e.target.value)} // Update filter query on input change
-          className="px-4 py-2 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
-        />
-      </div>
-
       {/* Table displaying user data */}
-      <div className="overflow-x-auto max-h-60">
+      <div className="overflow-x-auto">
         <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
           <thead>
             <tr className="bg-gray-200 dark:bg-gray-700">
-              {/* Table headers */}
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
-                ID
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
-                First Name
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
-                Last Name
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
-                Email
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
-                Actions
-              </th>
+              {(() => {
+                switch (true) {
+                  case activeFilterColumns.first_name:
+                    return (
+                      <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                        <div className="flex items-center justify-between">
+                          <span>First Name</span>
+                          <button
+                            onClick={() => toggleFilterColumn("first_name")}
+                            className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                          >
+                            Filter
+                          </button>
+                        </div>
+                        {/* Filter Input for First Name */}
+                        {activeFilterColumns.first_name && (
+                          <input
+                            type="text"
+                            placeholder="Filter First Name"
+                            value={columnFilters.first_name}
+                            onChange={(e) =>
+                              handleFilterChange("first_name", e.target.value)
+                            }
+                            className="mt-2 px-2 py-1 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                          />
+                        )}
+                      </th>
+                    );
+                  case activeFilterColumns.last_name:
+                    return (
+                      <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                        <div className="flex items-center justify-between">
+                          <span>Last Name</span>
+                          <button
+                            onClick={() => toggleFilterColumn("last_name")}
+                            className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                          >
+                            Filter
+                          </button>
+                        </div>
+                        {/* Filter Input for Last Name */}
+                        {activeFilterColumns.last_name && (
+                          <input
+                            type="text"
+                            placeholder="Filter Last Name"
+                            value={columnFilters.last_name}
+                            onChange={(e) =>
+                              handleFilterChange("last_name", e.target.value)
+                            }
+                            className="mt-2 px-2 py-1 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                          />
+                        )}
+                      </th>
+                    );
+                  case activeFilterColumns.email:
+                    return (
+                      <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                        <div className="flex items-center justify-between">
+                          <span>Email</span>
+                          <button
+                            onClick={() => toggleFilterColumn("email")}
+                            className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                          >
+                            Filter
+                          </button>
+                        </div>
+                        {/* Filter Input for Email */}
+                        {activeFilterColumns.email && (
+                          <input
+                            type="text"
+                            placeholder="Filter Email"
+                            value={columnFilters.email}
+                            onChange={(e) =>
+                              handleFilterChange("email", e.target.value)
+                            }
+                            className="mt-2 px-2 py-1 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                          />
+                        )}
+                      </th>
+                    );
+                  default:
+                    return (
+                      <>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                          ID
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                          <div className="flex items-center justify-between">
+                            <span>First Name</span>
+                            <button
+                              onClick={() => toggleFilterColumn("first_name")}
+                              className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                            >
+                              Filter
+                            </button>
+                          </div>
+                          {/* Filter Input for First Name */}
+                          {activeFilterColumns.first_name && (
+                            <input
+                              type="text"
+                              placeholder="Filter First Name"
+                              value={columnFilters.first_name}
+                              onChange={(e) =>
+                                handleFilterChange("first_name", e.target.value)
+                              }
+                              className="mt-2 px-2 py-1 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                            />
+                          )}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                          <div className="flex items-center justify-between">
+                            <span>Last Name</span>
+                            <button
+                              onClick={() => toggleFilterColumn("last_name")}
+                              className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                            >
+                              Filter
+                            </button>
+                          </div>
+                          {/* Filter Input for Last Name */}
+                          {activeFilterColumns.last_name && (
+                            <input
+                              type="text"
+                              placeholder="Filter Last Name"
+                              value={columnFilters.last_name}
+                              onChange={(e) =>
+                                handleFilterChange("last_name", e.target.value)
+                              }
+                              className="mt-2 px-2 py-1 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                            />
+                          )}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                          <div className="flex items-center justify-between">
+                            <span>Email</span>
+                            <button
+                              onClick={() => toggleFilterColumn("email")}
+                              className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                            >
+                              Filter
+                            </button>
+                          </div>
+                          {/* Filter Input for Email */}
+                          {activeFilterColumns.email && (
+                            <input
+                              type="text"
+                              placeholder="Filter Email"
+                              value={columnFilters.email}
+                              onChange={(e) =>
+                                handleFilterChange("email", e.target.value)
+                              }
+                              className="mt-2 px-2 py-1 border border-gray-300 rounded w-full dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                            />
+                          )}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 dark:text-white">
+                          Actions
+                        </th>
+                      </>
+                    );
+                }
+              })()}
             </tr>
           </thead>
-          <tbody className="h-full">
+          <tbody>
             {Array.isArray(sortedData) &&
               sortedData.map((user, index) => (
                 <tr
                   key={user.id}
                   className="even:bg-gray-50 hover:bg-gray-100 dark:even:bg-gray-700 dark:hover:bg-gray-600"
                 >
-                  <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
-                    {currentPage * 3 - 3 + index + 1}{" "}
-                    {/* Calculate ID based on current page */}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
-                    {user.first_name}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
-                    {user.last_name}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
-                    {user.email}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
-                    <div className="content-center">
-                      {/* Edit and Delete buttons */}
-                      {!user.delete && (
-                        <>
-                          <button
-                            className="hover:bg-green-700 border align-middle mx-2 px-2 py-1 border-black rounded-lg bg-green-600 text-slate-50"
-                            onClick={() => openEditModal(user)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="align-middle hover:bg-red-600 border mx-2 px-4 py-1 border-black rounded-lg bg-red-500 text-slate-50"
-                            onClick={() => handleDelete(user.id)} // Delete user on click
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+                  {(() => {
+                    switch (true) {
+                      case activeFilterColumns.first_name:
+                        return (
+                          <>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {currentPage * 3 - 3 + index + 1}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {user.first_name}
+                            </td>
+                          </>
+                        );
+                      case activeFilterColumns.last_name:
+                        return (
+                          <>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {currentPage * 3 - 3 + index + 1}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {user.last_name}
+                            </td>
+                          </>
+                        );
+                      case activeFilterColumns.email:
+                        return (
+                          <>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {currentPage * 3 - 3 + index + 1}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {user.email}
+                            </td>
+                          </>
+                        );
+                      default:
+                        return (
+                          <>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {currentPage * 3 - 3 + index + 1}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {user.first_name}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {user.last_name}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              {user.email}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2 text-gray-700 dark:text-white">
+                              <div className="content-center">
+                                <button
+                                  className="hover:bg-green-700 border align-middle mx-2 px-2 py-1 border-black rounded-lg bg-green-600 text-slate-50"
+                                  onClick={() => openEditModal(user)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="align-middle hover:bg-red-600 border mx-2 px-4 py-1 border-black rounded-lg bg-red-500 text-slate-50"
+                                  onClick={() => handleDelete(user.id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        );
+                    }
+                  })()}
                 </tr>
               ))}
           </tbody>
@@ -260,16 +452,16 @@ export default function Dashboard() {
       {/* Pagination Controls */}
       <div className="bg-transparent mt-4 flex justify-between items-center">
         <button
-          onClick={() => handlePageChange(currentPage - 1)} // Previous page button
+          onClick={() => handlePageChange(currentPage - 1)}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 dark:bg-gray-700 dark:text-white"
-          disabled={currentPage <= 1} // Disable if on the first page
+          disabled={currentPage <= 1}
         >
           Prev
         </button>
         <p className="dark:text-white">Page {currentPage}</p>
         <button
-          onClick={() => handlePageChange(currentPage + 1)} // Next page button
-          disabled={currentPage >= totalPages} // Disable if on the last page
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
           className="px-4 py-2 bg-gray-200 rounded dark:bg-gray-700 dark:text-white"
         >
           Next
@@ -281,16 +473,15 @@ export default function Dashboard() {
         <div
           id="modal-backdrop"
           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-          onClick={closeModal} // Close modal when clicking outside
+          onClick={closeModal}
         >
           <div className="shadow-lg rounded-lg p-8 w-full max-w-md relative backdrop-blur-md bg-white dark:bg-gray-800">
             <button
-              onClick={() => setModalOpen(false)} // Close modal
+              onClick={() => setModalOpen(false)}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-xl"
             >
               &times;
             </button>
-            {/* Conditionally render Edit or Add User Modal */}
             {selectedUser ? (
               <EditPage
                 notify={notify}
