@@ -4,7 +4,7 @@ import axios from "axios";
 import { useStore } from "../Store/Store";
 import { toast } from "react-toastify";
 
-import EditUserForm from "../Cards/UserForm";
+import EditUserForm from "../components/UserForm";
 
 export default function AddUserPage({ setQueryData, notify }) {
   const { setCurrentPage, setModalOpen, currentPage } = useStore();

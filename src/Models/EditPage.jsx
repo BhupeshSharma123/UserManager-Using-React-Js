@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import axios from "axios";
 import { useFormik } from "formik";
-import EditUserForm from "../Cards/UserForm";
+import EditUserForm from "../components/UserForm";
 
 export default function EditPage({
   userData,
