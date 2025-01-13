@@ -59,6 +59,10 @@ export const sortData = (filteredData, sortOrder) => {
 
 // Filter data based on column filters
 export const filterData = (queryData, columnFilters) => {
+  if (!Array.isArray(queryData)) {
+    console.error("queryData is not an array");
+    return [];
+  }
   return queryData.filter((user) => {
     return (
       user.first_name
