@@ -1,17 +1,23 @@
-/* eslint-disable react-refresh/only-export-components */
 /* eslint-disable no-unused-vars */
+// Dashboard.js
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import EditPage from "./Models/EditPage";
-import { useStore } from "./Store/Store";
-import { toast } from "react-toastify";
-import AddUserPage from "./Models/AddUserModel";
-import Table from "./components/Table";
-// Import the Table component
-// Import the TableRow component
-
-export const notify = (text) => toast(text);
+import EditPage from "../src/Models/EditPage";
+import { useStore } from "../src/Store/Store";
+import AddUserPage from "../src/Models/AddUserModel";
+import Table from "../src/components/Table";
+import {
+  notify,
+  fetchPaginatedData,
+  handleDelete,
+  handleFilterChange,
+  toggleFilterColumn,
+  sortData,
+  filterData,
+  toggleDarkMode,
+  closeModal,
+  manageBodyScroll,
+} from "../src/utils/DashboardFunctions"; // Import functions
 
 export default function Dashboard() {
   // Destructuring state from the global store
@@ -39,15 +45,6 @@ export default function Dashboard() {
   // State to track which column's filter input is visible
   const [activeFilterColumns, setActiveFilterColumns] = useState({});
 
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => {
-      const newMode = !prevMode;
-      localStorage.setItem("darkMode", newMode);
-      return newMode;
-    });
-  };
-
   // Add/remove the 'dark' class on the root element
   useEffect(() => {
     if (isDarkMode) {
@@ -57,26 +54,10 @@ export default function Dashboard() {
     }
   }, [isDarkMode]);
 
-  // Fetch paginated user data
-  const fetchPaginatedData = async ({ queryKey }) => {
-    const [_, page] = queryKey;
-
-    try {
-      const response = await axios.get(
-        `https://reqres.in/api/users?page=${page}&per_page=3`
-      );
-      setTotalPages(response.data.total_pages);
-      return response.data.data;
-    } catch (error) {
-      console.error("Error fetching data", error);
-      return [];
-    }
-  };
-
   // Fetch data using React Query's useQuery hook
   const { isLoading, isError, error } = useQuery(
     ["users", currentPage],
-    fetchPaginatedData,
+    (queryKey) => fetchPaginatedData(queryKey, setTotalPages),
     {
       enabled: currentPage >= 1,
       onSuccess: (data) => setQueryData(data),
@@ -95,73 +76,15 @@ export default function Dashboard() {
     setCurrentPage(page);
   };
 
-  // Handle user deletion
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`https://reqres.in/api/users/${id}`);
-      setQueryData((prevData) => prevData.filter((user) => user.id !== id));
-      notify(`User Deleted`);
-    } catch (error) {
-      console.error("Failed to delete user:", error);
-    }
-  };
-
   // Open the modal for editing a selected user
   const openEditModal = (userId) => {
     setSelectedUser(userId);
     setModalOpen(true);
   };
 
-  // Close the modal when clicking outside of it
-  const closeModal = (event) => {
-    if (event.target.id === "modal-backdrop") {
-      setModalOpen(false);
-    }
-  };
-
-  // Manage body scroll behavior when modal is open
-  useEffect(() => {
-    document.body.style.overflow = isModalOpen ? "hidden" : "auto";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isModalOpen]);
-
-  // Handle column filter input change
-  const handleFilterChange = (column, value) => {
-    setColumnFilters((prevFilters) => ({
-      ...prevFilters,
-      [column]: value,
-    }));
-  };
-
-  // Toggle the filter input for a specific column
-  const toggleFilterColumn = (column) => {
-    setActiveFilterColumns((prev) => ({
-      ...prev,
-      [column]: !prev[column],
-    }));
-  };
-
-  // Filter data based on column filters
-  const filteredData = queryData.filter((user) => {
-    return (
-      user.first_name
-        .toLowerCase()
-        .includes(columnFilters.first_name.toLowerCase()) &&
-      user.last_name
-        .toLowerCase()
-        .includes(columnFilters.last_name.toLowerCase()) &&
-      user.email.toLowerCase().includes(columnFilters.email.toLowerCase())
-    );
-  });
-
-  // Sort the filteredData array
-  const sortedData = [...filteredData].sort((a, b) => {
-    if (a.first_name < b.first_name) return sortOrder === "asc" ? -1 : 1;
-    if (a.first_name > b.first_name) return sortOrder === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Filter and sort data
+  const filteredData = filterData(queryData, columnFilters);
+  const sortedData = sortData(filteredData, sortOrder);
 
   if (isLoading) {
     return <h1 className="text-center text-xl font-bold">Loading...</h1>;
@@ -187,7 +110,7 @@ export default function Dashboard() {
             Sort by First Name ({sortOrder === "asc" ? "↑" : "↓"})
           </button>
           <button
-            onClick={toggleDarkMode}
+            onClick={() => toggleDarkMode(isDarkMode, setIsDarkMode)}
             className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
           >
             {isDarkMode ? "Light Mode" : "Dark Mode"}
@@ -204,13 +127,17 @@ export default function Dashboard() {
       {/* Table displaying user data */}
       <Table
         activeFilterColumns={activeFilterColumns}
-        toggleFilterColumn={toggleFilterColumn}
+        toggleFilterColumn={(column) =>
+          toggleFilterColumn(column, setActiveFilterColumns)
+        }
         columnFilters={columnFilters}
-        handleFilterChange={handleFilterChange}
+        handleFilterChange={(column, value) =>
+          handleFilterChange(column, value, setColumnFilters)
+        }
         sortedData={sortedData}
         currentPage={currentPage}
         openEditModal={openEditModal}
-        handleDelete={handleDelete}
+        handleDelete={(id) => handleDelete(id, setQueryData)}
       />
 
       {/* Pagination Controls */}
@@ -237,7 +164,7 @@ export default function Dashboard() {
         <div
           id="modal-backdrop"
           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-          onClick={closeModal}
+          onClick={(event) => closeModal(event, setModalOpen)}
         >
           <div className="shadow-lg rounded-lg p-8 w-full max-w-md relative backdrop-blur-md bg-white dark:bg-gray-800">
             <button
