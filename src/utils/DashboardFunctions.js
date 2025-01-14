@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 // dashboardFunctions.js
 import axios from "axios";
@@ -100,3 +99,21 @@ export const manageBodyScroll = (isModalOpen) => {
     document.body.style.overflow = "auto";
   };
 };
+export function filterAll(setInputText, setColumnFilters) {
+  return (e) => {
+    const inputValue = e.target.value; // Get the input value
+    setInputText(inputValue); // Update the input text state
+
+    // If the input is empty, reset the filtered data to the original data
+    if (!inputValue === "") {
+      setColumnFilters({ first_name: "", last_name: "", email: "" }); // Reset filters
+      return;
+    }
+
+    // Apply filtering logic to the `first_name` column
+    setColumnFilters((prevFilters) => ({
+      ...prevFilters, // Preserve other filters
+      first_name: inputValue,
+    }));
+  };
+}

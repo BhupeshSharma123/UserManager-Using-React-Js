@@ -1,3 +1,4 @@
+import { Input } from "./utils/input";
 /* eslint-disable no-unused-vars */
 // Dashboard.js
 import { useState, useEffect } from "react";
@@ -17,6 +18,7 @@ import {
   toggleDarkMode,
   closeModal,
   manageBodyScroll,
+  filterAll,
 } from "../src/utils/DashboardFunctions"; // Import functions
 
 export default function Dashboard() {
@@ -65,22 +67,7 @@ export default function Dashboard() {
       keepPreviousData: true,
     }
   );
-  const handleFilterAll = (e) => {
-    const inputValue = e.target.value; // Get the input value
-    setInputText(inputValue); // Update the input text state
-
-    // If the input is empty, reset the filtered data to the original data
-    if (!inputValue === "") {
-      setColumnFilters({ first_name: "", last_name: "", email: "" }); // Reset filters
-      return;
-    }
-
-    // Apply filtering logic to the `first_name` column
-    setColumnFilters((prevFilters) => ({
-      ...prevFilters, // Preserve other filters
-      first_name: inputValue, // Update the `first_name` filter
-    }));
-  };
+  const handleFilterAll = filterAll(setInputText, setColumnFilters);
 
   // Handle sorting
   const handleSort = () => {
@@ -119,16 +106,7 @@ export default function Dashboard() {
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
-        <input
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2
-           focus:ring-blue-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700
-            dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-          id="filter"
-          value={inputText}
-          type="text"
-          onChange={handleFilterAll} // Pass the function directly
-          placeholder="Filter by first name..."
-        />
+        <Input inputText={inputText} handleFilterAll={handleFilterAll} />
 
         <div className="flex gap-4">
           <button
