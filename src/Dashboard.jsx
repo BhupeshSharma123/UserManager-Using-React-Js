@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState("asc"); // Track sorting order (asc or desc)
   const [isDarkMode, setIsDarkMode] = useState();
   const [inputText, setInputText] = useState("");
-  const [checkInput, setCheckInput] = useState(false);
+
   // State for column filters
   const [columnFilters, setColumnFilters] = useState({
     first_name: "",
