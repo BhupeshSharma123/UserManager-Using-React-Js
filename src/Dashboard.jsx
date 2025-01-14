@@ -34,7 +34,8 @@ export default function Dashboard() {
   const [selectedUser, setSelectedUser] = useState(null); // Tracks the selected user for editing
   const [sortOrder, setSortOrder] = useState("asc"); // Track sorting order (asc or desc)
   const [isDarkMode, setIsDarkMode] = useState();
-
+  const [inputText, setInputText] = useState("");
+  const [checkInput, setCheckInput] = useState(false);
   // State for column filters
   const [columnFilters, setColumnFilters] = useState({
     first_name: "",
@@ -64,6 +65,22 @@ export default function Dashboard() {
       keepPreviousData: true,
     }
   );
+  const handleFilterAll = (e) => {
+    const inputValue = e.target.value; // Get the input value
+    setInputText(inputValue); // Update the input text state
+
+    // If the input is empty, reset the filtered data to the original data
+    if (!inputValue === "") {
+      setColumnFilters({ first_name: "", last_name: "", email: "" }); // Reset filters
+      return;
+    }
+
+    // Apply filtering logic to the `first_name` column
+    setColumnFilters((prevFilters) => ({
+      ...prevFilters, // Preserve other filters
+      first_name: inputValue, // Update the `first_name` filter
+    }));
+  };
 
   // Handle sorting
   const handleSort = () => {
@@ -95,12 +112,23 @@ export default function Dashboard() {
       <h1 className="text-center text-xl font-bold">Error: {error.message}</h1>
     );
   }
+  console.log(inputText);
 
   return (
     <div className="p-6 bg-white dark:bg-gray-800 min-h-screen">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
+        <input
+          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2
+           focus:ring-blue-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700
+            dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+          id="filter"
+          value={inputText}
+          type="text"
+          onChange={handleFilterAll} // Pass the function directly
+          placeholder="Filter by first name..."
+        />
 
         <div className="flex gap-4">
           <button

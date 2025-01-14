@@ -4,7 +4,7 @@
 import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 
-export const Table = ({
+const Table = ({
   activeFilterColumns,
   toggleFilterColumn,
   columnFilters,

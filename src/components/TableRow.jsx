@@ -1,7 +1,10 @@
+/* eslint-disable no-undef */
 /* eslint-disable react/prop-types */
 // TableRow.js
 
-export const TableRow = ({
+``;
+
+const TableRow = ({
   user,
   index,
   currentPage,

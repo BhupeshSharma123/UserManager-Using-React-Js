@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 // dashboardFunctions.js
 import axios from "axios";
