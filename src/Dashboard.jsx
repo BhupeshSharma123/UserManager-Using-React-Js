@@ -106,7 +106,11 @@ export default function Dashboard() {
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
-        <Input inputText={inputText} handleFilterAll={handleFilterAll} />
+        <Input
+          inputText={inputText}
+          handleFilterAll={handleFilterAll}
+          placeholder={"Filter..."}
+        />
 
         <div className="flex gap-4">
           <button

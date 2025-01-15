@@ -1,5 +1,5 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-// dashboardFunctions.js
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -63,15 +63,20 @@ export const filterData = (queryData, columnFilters) => {
     console.error("queryData is not an array");
     return [];
   }
+
   return queryData.filter((user) => {
+    // Check if any column filter matches the user data
     return (
-      user.first_name
-        .toLowerCase()
-        .includes(columnFilters.first_name.toLowerCase()) &&
-      user.last_name
-        .toLowerCase()
-        .includes(columnFilters.last_name.toLowerCase()) &&
-      user.email.toLowerCase().includes(columnFilters.email.toLowerCase())
+      (columnFilters.first_name === "" ||
+        user.first_name
+          .toLowerCase()
+          .includes(columnFilters.first_name.toLowerCase())) &&
+      (columnFilters.last_name === "" ||
+        user.last_name
+          .toLowerCase()
+          .includes(columnFilters.last_name.toLowerCase())) &&
+      (columnFilters.email === "" ||
+        user.email.toLowerCase().includes(columnFilters.email.toLowerCase()))
     );
   });
 };
@@ -99,21 +104,26 @@ export const manageBodyScroll = (isModalOpen) => {
     document.body.style.overflow = "auto";
   };
 };
+
+// Apply a global filter to all columns
 export function filterAll(setInputText, setColumnFilters) {
   return (e) => {
     const inputValue = e.target.value; // Get the input value
     setInputText(inputValue); // Update the input text state
 
-    // If the input is empty, reset the filtered data to the original data
-    if (!inputValue === "") {
-      setColumnFilters({ first_name: "", last_name: "", email: "" }); // Reset filters
-      return;
-    }
-
-    // Apply filtering logic to the `first_name` column
-    setColumnFilters((prevFilters) => ({
-      ...prevFilters, // Preserve other filters
+    // Apply the same filter value to all columns
+    setColumnFilters({
       first_name: inputValue,
-    }));
+      last_name: inputValue,
+      email: inputValue,
+    });
   };
 }
+export const resetFilters = () => {
+  setColumnFilters({
+    first_name: "",
+    last_name: "",
+    email: "",
+  });
+  setInputText("");
+};

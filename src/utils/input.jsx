@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-export function Input({ inputText, handleFilterAll }) {
+export function Input({ inputText, handleFilterAll, placeholder }) {
   return (
     <input
       className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2
@@ -10,7 +10,7 @@ export function Input({ inputText, handleFilterAll }) {
       value={inputText}
       type="text"
       onChange={handleFilterAll} // Pass the function directly
-      placeholder="Filter by first name..."
+      placeholder={placeholder}
     />
   );
 }
