@@ -1,12 +1,11 @@
-import { Input } from "./utils/input";
-/* eslint-disable no-unused-vars */
-// Dashboard.js
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import EditPage from "../src/Models/EditPage";
 import { useStore } from "../src/Store/Store";
 import AddUserPage from "../src/Models/AddUserModel";
 import Table from "../src/components/Table";
+import { Input } from "./utils/input";
 import {
   notify,
   fetchPaginatedData,
@@ -17,9 +16,7 @@ import {
   filterData,
   toggleDarkMode,
   closeModal,
-  manageBodyScroll,
   filterAll,
-  resetFilters,
 } from "../src/utils/DashboardFunctions"; // Import functions
 
 export default function Dashboard() {
@@ -32,7 +29,9 @@ export default function Dashboard() {
     setTotalPages,
     setModalOpen,
     countAdded,
-    setCountAdded,
+    total,
+    setTotal,
+    setDeleteCountAdded,
   } = useStore();
 
   const [queryData, setQueryData] = useState([]); // Stores the users data
@@ -66,16 +65,25 @@ export default function Dashboard() {
     (queryKey) => fetchPaginatedData(queryKey, setTotalPages),
     {
       enabled: currentPage >= 1,
-      onSuccess: (data) => setQueryData(data),
+      onSuccess: (data) => {
+        setQueryData(data);
+      },
       keepPreviousData: true,
     }
   );
+
+  // Update total when sortedData or countAdded changes
+  useEffect(() => {
+    setTotal(queryData.length, countAdded);
+  }, [queryData, countAdded]);
+
   const handleFilterAll = filterAll(setInputText, setColumnFilters);
 
   // Handle sorting
   const handleSort = () => {
     setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
   };
+
   const resetFilters = () => {
     setColumnFilters({
       first_name: "",
@@ -83,7 +91,6 @@ export default function Dashboard() {
       email: "",
     });
     setInputText("");
-    console.log("reset button clicked");
   };
 
   // Handle page change (Pagination)
@@ -111,16 +118,18 @@ export default function Dashboard() {
       <h1 className="text-center text-xl font-bold">Error: {error.message}</h1>
     );
   }
-  console.log(inputText);
-  console.log(countAdded);
+
   return (
     <div className="p-6 bg-white dark:bg-gray-800 min-h-screen">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
         <h4 className="text-xl font-semibold text-gray-700 dark:text-white mr-10">
-          User Added: {countAdded}
+          Total Users : {total}
         </h4>
+        <h3 className="text-xl font-semibold text-gray-700 dark:text-white mr-10">
+          User Added: {countAdded}
+        </h3>
 
         <Input
           inputText={inputText}
@@ -169,7 +178,10 @@ export default function Dashboard() {
         sortedData={sortedData}
         currentPage={currentPage}
         openEditModal={openEditModal}
-        handleDelete={(id) => handleDelete(id, setQueryData)}
+        handleDelete={(id) => {
+          handleDelete(id, setQueryData);
+          setDeleteCountAdded();
+        }}
       />
 
       {/* Pagination Controls */}

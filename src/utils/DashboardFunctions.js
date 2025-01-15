@@ -6,7 +6,11 @@ import { toast } from "react-toastify";
 export const notify = (text) => toast(text);
 
 // Fetch paginated user data
-export const fetchPaginatedData = async ({ queryKey }, setTotalPages) => {
+export const fetchPaginatedData = async (
+  { queryKey },
+  setTotalPages,
+  total
+) => {
   const [_, page] = queryKey;
 
   try {
@@ -14,6 +18,7 @@ export const fetchPaginatedData = async ({ queryKey }, setTotalPages) => {
       `https://reqres.in/api/users?page=${page}&per_page=3`
     );
     setTotalPages(response.data.total_pages);
+
     return response.data.data;
   } catch (error) {
     console.error("Error fetching data", error);
