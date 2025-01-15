@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import EditPage from "../src/Models/EditPage";
-import { useStore } from "../src/Store/Store";
+import { useStore } from "./Store/Store.js";
 import AddUserPage from "../src/Models/AddUserModel";
 import Table from "../src/components/Table";
 import { Input } from "./utils/input";
@@ -17,7 +17,7 @@ import {
   toggleDarkMode,
   closeModal,
   filterAll,
-} from "../src/utils/DashboardFunctions"; // Import functions
+} from "./utils/DashboardFunctions.js"; // Import functions
 
 export default function Dashboard() {
   // Destructuring state from the global store
