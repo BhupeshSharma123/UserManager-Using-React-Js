@@ -8,7 +8,7 @@ import EditUserForm from "../components/UserForm";
 
 export default function AddUserPage({ setQueryData, notify }) {
   const { setCurrentPage, setModalOpen, currentPage } = useStore();
-
+  const { setCountAdded } = useStore();
   const addData = async (userData) => {
     try {
       const res = await axios.post("https://reqres.in/api/users/", userData);
@@ -37,6 +37,7 @@ export default function AddUserPage({ setQueryData, notify }) {
 
     onSubmit: async (values) => {
       const newUser = await addData(values); // Add the new user
+      setCountAdded();
       if (newUser) {
         setQueryData((prevQueryData) => {
           const updatedData = [...prevQueryData];
@@ -59,8 +60,8 @@ export default function AddUserPage({ setQueryData, notify }) {
 
         // Trigger the toast notification
         setModalOpen(false); // Close the modal after successful form submission
+        notify("User added");
       }
-      notify("User added");
     },
   });
 

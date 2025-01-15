@@ -31,6 +31,8 @@ export default function Dashboard() {
     setCurrentPage,
     setTotalPages,
     setModalOpen,
+    countAdded,
+    setCountAdded,
   } = useStore();
 
   const [queryData, setQueryData] = useState([]); // Stores the users data
@@ -69,11 +71,7 @@ export default function Dashboard() {
     }
   );
   const handleFilterAll = filterAll(setInputText, setColumnFilters);
-  const handleResetFilters = () => {
-    setInputText("");
-    setColumnFilters(resetFilters(columnFilters));
-    setActiveFilterColumns({});
-  };
+
   // Handle sorting
   const handleSort = () => {
     setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
@@ -114,12 +112,16 @@ export default function Dashboard() {
     );
   }
   console.log(inputText);
-
+  console.log(countAdded);
   return (
     <div className="p-6 bg-white dark:bg-gray-800 min-h-screen">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
+        <h4 className="text-xl font-semibold text-gray-700 dark:text-white mr-10">
+          User Added: {countAdded}
+        </h4>
+
         <Input
           inputText={inputText}
           handleFilterAll={handleFilterAll}
