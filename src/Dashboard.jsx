@@ -19,6 +19,7 @@ import {
   closeModal,
   manageBodyScroll,
   filterAll,
+  resetFilters,
 } from "../src/utils/DashboardFunctions"; // Import functions
 
 export default function Dashboard() {
@@ -68,10 +69,23 @@ export default function Dashboard() {
     }
   );
   const handleFilterAll = filterAll(setInputText, setColumnFilters);
-
+  const handleResetFilters = () => {
+    setInputText("");
+    setColumnFilters(resetFilters(columnFilters));
+    setActiveFilterColumns({});
+  };
   // Handle sorting
   const handleSort = () => {
     setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+  };
+  const resetFilters = () => {
+    setColumnFilters({
+      first_name: "",
+      last_name: "",
+      email: "",
+    });
+    setInputText("");
+    console.log("reset button clicked");
   };
 
   // Handle page change (Pagination)
@@ -113,6 +127,12 @@ export default function Dashboard() {
         />
 
         <div className="flex gap-4">
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Reset Filters
+          </button>
           <button
             onClick={handleSort}
             className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600"

@@ -126,4 +126,5 @@ export const resetFilters = () => {
     email: "",
   });
   setInputText("");
+  console.log("reset button clicked");
 };
